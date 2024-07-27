@@ -1,0 +1,19 @@
+model:
+  _target_: models.PixarGenerator
+  controlnet_type: 'canny'
+  pixar_weights: 'https://huggingface.co/martyn/sdxl-turbo-mario-merge-top-rated/blob/main/topRatedTurboxlLCM_v10.safetensors'
+  lora_weights: 'ntc-ai/SDXL-LoRA-slider.pixar-style'
+  adapter_weights: 2.0
+  description_model: 
+    _target_: models.BlipModel
+    processor: "Salesforce/blip-image-captioning-large"
+    model: "Salesforce/blip-image-captioning-large"
+    text: "professional 3d cartoon portrait of"
+  scheduler: 'euler'
+
+
+
+accelerator:
+  _target_: accelerate.Accelerator
+  device_placement: True
+  gradient_accumulation_steps: 1
