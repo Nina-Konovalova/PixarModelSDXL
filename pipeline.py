@@ -30,8 +30,6 @@ def parse_args() -> argparse.Namespace:
                         help='Strength for Im2Im pipeline')
     parser.add_argument('--guidance_scale', type=float, default=8, 
                         help='Guidance_scale')
-    parser.add_argument('--gradio', type=bool, default=False,
-                        help='Run Gradio interface if set to True')
     parser.add_argument('--batch_size', type=int, default=1,
                         help='Batch size for processing')
     parser.add_argument('--seed', type=int, default=42,
@@ -49,38 +47,38 @@ def main():
     config = OmegaConf.load(args.config)
     model = hydra.utils.instantiate(config.model)
 
-    if not args.gradio:
-        accelerator = hydra.utils.instantiate(config.accelerator)
 
-        if os.path.isdir(args.image_path):
-            images = get_images_from_directory(args.image_path)
-        else:
-            assert is_image_file(args.image_path), f"You should use one of the extensions: {['.jpg', '.jpeg', '.png', '.bmp', '.gif']}"
-            images = [args.image_path]
+    accelerator = hydra.utils.instantiate(config.accelerator)
 
-        transform = transforms.Compose([
-            transforms.ToTensor(),
-        ])
+    if os.path.isdir(args.image_path):
+        images = get_images_from_directory(args.image_path)
+    else:
+        assert is_image_file(args.image_path), f"You should use one of the extensions: {['.jpg', '.jpeg', '.png', '.bmp', '.gif']}"
+        images = [args.image_path]
 
-        dataset = ImageDataset(images, transform=transform)
-        assert args.batch_size == 1, "We can work only with batch size 1 now"
-        dataloader = DataLoader(dataset, batch_size=args.batch_size, shuffle=False)
+    transform = transforms.Compose([
+        transforms.ToTensor(),
+    ])
 
-        model, dataloader = accelerator.prepare(model, dataloader)
-        model.set_device(accelerator.device)
+    dataset = ImageDataset(images, transform=transform)
+    assert args.batch_size == 1, "We can work only with batch size 1 now"
+    dataloader = DataLoader(dataset, batch_size=args.batch_size, shuffle=False)
 
-        model.eval()
-        all_outputs = []
+    model, dataloader = accelerator.prepare(model, dataloader)
+    model.set_device(accelerator.device)
 
-        with torch.no_grad():
-            for batch in dataloader:
-                inputs = batch['image'].to(accelerator.device)
-                prompt = ", pixar-style, pixar art style, highly detailed"
-                negative_prompt = 'cropped head, black and white, slanted eyes, deformed, bad anatomy, disfigured, poorly drawn face, mutation, mutated, extra limb, ugly, disgusting, poorly drawn hands, missing limb, floating limbs, disconnected limbs, malformed hands, blurry, ((((mutated hands and fingers)))), watermark, watermarked, oversaturated, censored, distorted hands, amputation, missing hands, obese, doubled face, double hands'
-                outputs = model(inputs, prompt=prompt, negative_prompt=negative_prompt, strength=args.strength, guidance_scale=args.guidance_scale)
-                all_outputs.append(outputs)
-                save_images([outputs], args.output_dir, batch['name'])
-        return all_outputs
+    model.eval()
+    all_outputs = []
+
+    with torch.no_grad():
+        for batch in dataloader:
+            inputs = batch['image'].to(accelerator.device)
+            prompt = ", pixar-style, pixar art style, highly detailed"
+            negative_prompt = 'cropped head, black and white, slanted eyes, deformed, bad anatomy, disfigured, poorly drawn face, mutation, mutated, extra limb, ugly, disgusting, poorly drawn hands, missing limb, floating limbs, disconnected limbs, malformed hands, blurry, ((((mutated hands and fingers)))), watermark, watermarked, oversaturated, censored, distorted hands, amputation, missing hands, obese, doubled face, double hands'
+            outputs = model(inputs, prompt=prompt, negative_prompt=negative_prompt, strength=args.strength, guidance_scale=args.guidance_scale)
+            all_outputs.append(outputs)
+            save_images([outputs], args.output_dir, batch['name'])
+    return all_outputs
 
 
 if __name__ == "__main__":

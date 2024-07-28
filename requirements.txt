@@ -1,0 +1,10 @@
+accelerate==0.33.0
+controlnet-aux==0.0.9
+diffusers==0.29.2
+hydra-core==1.3.2
+rembg==2.0.57
+transformers==4.43.3
+xformers==0.0.24
+peft==0.12.0
+mediapipe
+gradio==3.48.0

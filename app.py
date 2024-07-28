@@ -140,18 +140,12 @@ css = """
         #component-16{border-top-width: 1px!important;margin-top: 1em}
         .image_duplication{position: absolute; width: 100px; left: 50px}
         img {
-            max-height: 500px;
+            max-height: 400px;
             width: 100%; /* Add this line */
             height: 100%; /* Add this line */
             object-fit: contain;
             border: none; /* Remove the border */
         }
-        .examples img {
-                max-width: 150px; /* Increase the max width to make the images larger */
-                max-height: 150px; /* Ensure the aspect ratio is maintained */
-                object-fit: cover;
-                border: none; /* Remove the border */
-            }
 """
 
 examples = [
