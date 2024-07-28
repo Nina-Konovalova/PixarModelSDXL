@@ -1,18 +1,21 @@
 import gradio as gr
 from PIL import Image
+import hydra
+from omegaconf import OmegaConf
+import numpy as np
+import torch
 
 
-
-def process_image(image, control_type, strength, guidance_scale, prompt, negative_prompt):
+def process_image(image, control_type, strength, guidance_scale, prompt, negative_prompt, seed):
     # Placeholder for the actual image processing pipeline
     # Replace this part with the actual model inference logic
-    config = OmegaConf.load("configs/eval.yaml")
-    model = hydra.utils.instantiate(config.model)
+    image = torch.from_numpy(np.array(image) / 255.).permute(2, 0, 1)[None]
+    
     prompt = prompt + ", pixar-style, pixar art style, highly detailed"
     negative_prompt = negative_prompt + 'cropped head, black and white, slanted eyes, deformed, bad anatomy, disfigured, poorly drawn face, mutation, mutated, extra limb, ugly, disgusting, poorly drawn hands, missing limb, floating limbs, disconnected limbs, malformed hands, blurry, ((((mutated hands and fingers)))), watermark, watermarked, oversaturated, censored, distorted hands, amputation, missing hands, obese, doubled face, double hands'
-    outputs = model(inputs, prompt=prompt, negative_prompt=negative_prompt, strength=strength, guidance_scale=guidance_scale)
+    outputs = model(image, prompt=prompt, negative_prompt=negative_prompt, strength=strength, guidance_scale=guidance_scale)
 
-    return image
+    return outputs
 
 css = """
         .gradio-container {
@@ -30,12 +33,12 @@ css = """
             accent-color: #dfdfdf;
         }
         .container {
-            max-width: 740px;
+            max-width: 730px;
             margin: auto;
             padding-top: 1.5rem;
         }
         #gallery {
-            min-height: 22rem;
+            min-height: 15rem;
             margin-bottom: 15px;
             margin-left: auto;
             margin-right: auto;
@@ -43,7 +46,7 @@ css = """
             border-bottom-left-radius: .5rem !important;
         }
         #gallery>div>.h-full {
-            min-height: 20rem;
+            min-height: 15rem;
         }
         .details:hover {
             text-decoration: underline;
@@ -129,7 +132,6 @@ css = """
         
         .gr-form{
             flex: 1 1 50%; border-top-right-radius: 0; border-bottom-right-radius: 0;
-
         }
         #prompt-container{
             gap: 0;
@@ -137,33 +139,54 @@ css = """
         #prompt-text-input, #negative-prompt-text-input{padding: .45rem 0.625rem}
         #component-16{border-top-width: 1px!important;margin-top: 1em}
         .image_duplication{position: absolute; width: 100px; left: 50px}
+        img {
+            max-height: 500px;
+            width: 100%; /* Add this line */
+            height: 100%; /* Add this line */
+            object-fit: contain;
+            border: none; /* Remove the border */
+        }
+        .examples img {
+                max-width: 150px; /* Increase the max width to make the images larger */
+                max-height: 150px; /* Ensure the aspect ratio is maintained */
+                object-fit: cover;
+                border: none; /* Remove the border */
+            }
 """
 
 examples = [
-    ["example1.jpg", "no", 0.8, 7.5, "pixar-style, pixar art style, highly detailed", "cropped head, black and white, slanted eyes, deformed, bad anatomy, disfigured, poorly drawn face, mutation, mutated, extra limb, ugly, disgusting, poorly drawn hands, missing limb, floating limbs, disconnected limbs, malformed hands, blurry, ((((mutated hands and fingers)))), watermark, watermarked, oversaturated, censored, distorted hands, amputation, missing hands, obese, doubled face, double hands", 42],
-    ["example2.jpg", "canny", 0.8, 7.5, "pixar-style, pixar art style, highly detailed", "cropped head, black and white, slanted eyes, deformed, bad anatomy, disfigured, poorly drawn face, mutation, mutated, extra limb, ugly, disgusting, poorly drawn hands, missing limb, floating limbs, disconnected limbs, malformed hands, blurry, ((((mutated hands and fingers)))), watermark, watermarked, oversaturated, censored, distorted hands, amputation, missing hands, obese, doubled face, double hands", 42],
-    ["example3.jpg", "scribble", 0.8, 7.5, "pixar-style, pixar art style, highly detailed", "cropped head, black and white, slanted eyes, deformed, bad anatomy, disfigured, poorly drawn face, mutation, mutated, extra limb, ugly, disgusting, poorly drawn hands, missing limb, floating limbs, disconnected limbs, malformed hands, blurry, ((((mutated hands and fingers)))), watermark, watermarked, oversaturated, censored, distorted hands, amputation, missing hands, obese, doubled face, double hands", 42]
-    ["example4.jpg", "pose", 0.8, 7.5, "pixar-style, pixar art style, highly detailed", "cropped head, black and white, slanted eyes, deformed, bad anatomy, disfigured, poorly drawn face, mutation, mutated, extra limb, ugly, disgusting, poorly drawn hands, missing limb, floating limbs, disconnected limbs, malformed hands, blurry, ((((mutated hands and fingers)))), watermark, watermarked, oversaturated, censored, distorted hands, amputation, missing hands, obese, doubled face, double hands", 42]
+    ["images/nina.jpg", "no", 0.6, 8.0, "", ""],
+    ["images/nina_2.jpg", "canny", 0.6, 8.0, "", ""],
+    ["images/photo_2024-07-27_14-16-25.jpg", "scribble", 0.6, 8.0, "", ""],
+    ["images/photo_2024-07-27_14-16-26.jpg", "pose", 0.6, 8.0, "", ""]
 ]
 
+
 with gr.Blocks(css=css) as demo:
-    gr.Markdown("# Pixar portrait SDXL")
-    gr.Markdown("This model can transform your portrait image into a pixar-like portrait. It is based on SDXL (link) and LoRA weights (link).")
-    
+    gr.Markdown("<h1 style='text-align: center;'>Pixar portrait SDXL</h1>")
+    gr.Markdown("This model can transform your portrait image into a pixar-like portrait. It is based on [SDXL](https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0) and [LoRA weights](https://huggingface.co/ntc-ai/SDXL-LoRA-slider.pixar-style).")
+    config = OmegaConf.load("configs/eval.yaml")
+    model = hydra.utils.instantiate(config.model)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model.set_device(device)
     with gr.Row():
         with gr.Column():
             input_image = gr.Image(type="pil", label="Upload your image")
             control_type = gr.Radio(["canny", "scribble", "pose", "no"], label="Type of Control", value="no")
-        with gr.Column():
+            run_button = gr.Button("Run")
+            
             strength = gr.Slider(minimum=0, maximum=1, step=0.1, value=0.6, label="Strength")
-            guidance_scale = gr.Slider(minimum=4, maximum=20, step=0.5, value=15, label="Guidance Scale")
+            guidance_scale = gr.Slider(minimum=0, maximum=20, step=0.5, value=8, label="Guidance Scale")
             prompt = gr.Textbox(value="", label="Additional Prompt")
             negative_prompt = gr.Textbox(value="", label="Additional Negative Prompt")
-            #seed = gr.Number(value=42, label="Seed", precision=0)
-    
+            # seed = gr.Number(value=42, label="Seed", precision=0)
+            
+        with gr.Column():
+            output_image = gr.Image(type="pil", label="Output Image")
+
     gr.Markdown("### Example Images")
-    examples_component = gr.Examples(examples=examples, inputs=[input_image, control_type, strength, guidance_scale, prompt, negative_prompt, seed])
-    
-    gr.Button("Run").click(fn=process_image, inputs=[input_image, control_type, strength, guidance_scale, prompt, negative_prompt, seed], outputs="image")
+    examples_component = gr.Examples(examples=examples, inputs=[input_image, control_type, strength, guidance_scale], outputs=output_image)
+
+    run_button.click(fn=process_image, inputs=[input_image, control_type, strength, guidance_scale, prompt, negative_prompt], outputs=[output_image])
 
 demo.launch()

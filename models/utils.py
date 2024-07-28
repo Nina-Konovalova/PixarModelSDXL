@@ -99,7 +99,7 @@ def canny_control(image, processor=None):
     Returns:
         PIL.Image: The image with Canny edge detection applied.
     """
-    np_image = np.array(image)
+    np_image = np.array(image.cpu()).astype(np.uint8)
     edges = cv2.Canny(np_image, 50, 140)
     edges = edges[:, :, None]
     edges = np.concatenate([edges, edges, edges], axis=2)

@@ -20,7 +20,7 @@ class PixarGenerator(torch.nn.Module):
     def __init__(self, controlnet_type: str,
                  pixar_weights: str = 'https://huggingface.co/martyn/sdxl-turbo-mario-merge-top-rated/blob/main/topRatedTurboxlLCM_v10.safetensors',
                  lora_weights: str = 'ntc-ai/SDXL-LoRA-slider.pixar-style',
-                 adapter_weights: float = 2.0,
+                 adapter_weights: float = 3.0,
                  description_model: Optional[torch.nn.Module] = None,
                  seed: int = None,
                  scheduler: str = 'ddim'):
@@ -83,7 +83,7 @@ class PixarGenerator(torch.nn.Module):
 
 
     @torch.no_grad()
-    def create_control(self, images: Union[np.ndarray, Image.Image], no_background: bool = True) -> Optional[Image.Image]:
+    def create_control(self, image: Union[np.ndarray, Image.Image], no_background: bool = False) -> Optional[Image.Image]:
         """
         Create a control image based on the input image and controlnet type.
 
@@ -95,11 +95,12 @@ class PixarGenerator(torch.nn.Module):
             Optional[Image.Image]: The control image.
         """
         if no_background:
-            for image in images:
-                image = torchvision.transforms.functional.to_pil_image(image)
-                image = remove(image)
-                image = torch.from_numpy(np.array(image))
-        
+            image = torchvision.transforms.functional.to_pil_image(image[0])
+            image = remove(image)
+            image = torch.from_numpy(np.array(image))
+        else:
+            image = (image * 255.)
+
         if self.controlnet_type == 'pose':
             control_image = openpose_control(image, self.processor)
         elif self.controlnet_type == 'canny':
@@ -134,7 +135,7 @@ class PixarGenerator(torch.nn.Module):
         if control_image is None:
             control_image = self.create_control(image)
         
-        prompt = self.description_model(image, prompt) + prompt
+        prompt = self.description_model(image.to(self.pipeline_im2im.device), prompt) + prompt
 
         generated_image = self.pipeline_im2im(prompt, 
                                               negative_prompt=negative_prompt, 

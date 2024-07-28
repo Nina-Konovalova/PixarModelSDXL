@@ -95,5 +95,5 @@ def save_images(images: List[Union[Image.Image, torch.Tensor, np.ndarray]], save
             image = transforms.ToPILImage()(image)
         elif isinstance(image, np.ndarray):
             image = Image.fromarray(image)
-        image.save(os.path.join(save_dir, f'pixar_{img_names[i]}.png'))
+        image.save(os.path.join(save_dir, f'pixar_{img_names[i]}'))
 

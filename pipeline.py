@@ -79,7 +79,7 @@ def main():
                 negative_prompt = 'cropped head, black and white, slanted eyes, deformed, bad anatomy, disfigured, poorly drawn face, mutation, mutated, extra limb, ugly, disgusting, poorly drawn hands, missing limb, floating limbs, disconnected limbs, malformed hands, blurry, ((((mutated hands and fingers)))), watermark, watermarked, oversaturated, censored, distorted hands, amputation, missing hands, obese, doubled face, double hands'
                 outputs = model(inputs, prompt=prompt, negative_prompt=negative_prompt, strength=args.strength, guidance_scale=args.guidance_scale)
                 all_outputs.append(outputs)
-                save_images(all_outputs, args.output_dir, batch['name'])
+                save_images([outputs], args.output_dir, batch['name'])
         return all_outputs
 
 
