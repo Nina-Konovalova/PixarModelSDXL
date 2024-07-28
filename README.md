@@ -13,7 +13,7 @@ This project converts portrait images into Pixar-style images using a deep learn
 ### ControlNet
 Additionally the [controlnet model](https://github.com/lllyasviel/ControlNet) can be applyed:
 
-1. [**Pose ControlNet:**]() uses [pose estimation](https://huggingface.co/thibaud/controlnet-openpose-sdxl-1.0) to guide the generation process, ensuring that the generated image follows the pose of the input image.
+1. [**Pose ControlNet:**](https://huggingface.co/thibaud/controlnet-openpose-sdxl-1.0) uses [pose estimation](https://github.com/CMU-Perceptual-Computing-Lab/openpose) to guide the generation process, ensuring that the generated image follows the pose of the input image.
 
 2. [**Canny Edge ControlNet:**](https://huggingface.co/diffusers/controlnet-canny-sdxl-1.0) uses Canny edge detection to guide the generation process, focusing on the edges detected in the input image.
 
@@ -60,7 +60,12 @@ conda install pytorch==2.2.0 torchvision==0.17.0 torchaudio==2.2.0 pytorch-cuda=
 
 **Docker**
 
-coming soon.....
+```
+docker build -t pixar-model-sdxl .
+docker run -p 7860:7860 pixar-model-sdxl
+```
+
+!Dockerfile was not tested! It will be improved later
 
 
 3. To run validation pipeline:
@@ -86,3 +91,13 @@ python app.py
 | <img src="images/nina_2.jpg" width="100"/> | <img src="outputs/pixar_nina_2.png" width="100"/> |  canny | 0.6 | 8 |
 | <img src="images/photo_2024-07-27_14-16-25.jpg"  width="100"/> | <img src="images/zanya.png" width="100"/> |  scribble | 0.6 | 8 |
 | <img src="images/photo_2024-07-27_14-16-26.jpg" width="100"/> | <img src="images/zanya_2.png" width="100"/>  | pose | 0.6 | 8 |
+
+## TODO
+
+- [x] Make validation pipeline
+- [x] Add several controlnets
+- [x] Make app
+- [ ] Test Dockerfile
+- [ ] Learn ControlNet for facial landmarks conditioning
+- [ ] Add better image description model
+ 
