@@ -89,8 +89,8 @@ python app.py
 |--------------------|-----------------|-----------------| ----------|----------------|
 | <img src="images/nina.jpg" width="100"/> | <img src="outputs/pixar_nina.png" width="100"/> | no control | 0.6 | 8 |
 | <img src="images/nina_2.jpg" width="100"/> | <img src="outputs/pixar_nina_2.png" width="100"/> |  canny | 0.6 | 8 |
-| <img src="images/photo_2024-07-27_14-16-25.jpg"  width="100"/> | <img src="images/zanya.png" width="100"/> |  scribble | 0.6 | 8 |
-| <img src="images/photo_2024-07-27_14-16-26.jpg" width="100"/> | <img src="images/zanya_2.png" width="100"/>  | pose | 0.6 | 8 |
+| <img src="images/photo_2024-07-27_14-16-25.jpg"  width="100"/> | <img src="outputs/zanya.png" width="100"/> |  scribble | 0.6 | 8 |
+| <img src="images/photo_2024-07-27_14-16-26.jpg" width="100"/> | <img src="outputs/zanya_2.png" width="100"/>  | pose | 0.6 | 8 |
 
 ## TODO
 
